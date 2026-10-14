@@ -7,7 +7,7 @@ const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 const MAX_SEC = 60, SAFE_SEC = 58, MAX_SPEED = 1.6, MAX_IMG = 30;
 
-const DEFAULT = { captions: true, preset: "clean", position: "bottom", bgMode: "blur", bgColor: "#FFFFFF", speed: 1.2, motion: "dynamic", hookCard: true, useSfx: true, progressBar: true };
+const DEFAULT = { captions: true, preset: "clean", position: "bottom", bgMode: "blur", bgColor: "#FFFFFF", speed: 1.2, motion: "normal", hookCard: true, useSfx: true, progressBar: true };
 let opt = { ...DEFAULT };
 let S = blank();
 function blank() { return { images: [], voiceFile: null, raw: null, asr: null, proc: null, words: [], lines: [], captionText: "", userMap: null, busy: false, video: null }; }
@@ -245,7 +245,7 @@ $("#newJob").onclick = () => {
   releaseVideo();
   S = blank(); opt = { ...DEFAULT };
   $("#capEdit").value = ""; $("#voiceStatus").hidden = true; $("#result").hidden = true; hideErr();
-  $("#speed").value = "1.2"; $("#motion").value = "dynamic";
+  $("#speed").value = "1.2"; $("#motion").value = "normal";
   for (const id of ["hookCard", "useSfx", "progressBar"]) $("#" + id).checked = true;
   render(); window.scrollTo({ top: 0, behavior: "smooth" });
 };
