@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1F6F5C" />
+<title>릴스메이커</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<style>
+@font-face{font-family:'Pretendard';font-weight:400 700;src:url(fonts/Pretendard-Bold.woff2) format('woff2')}
+@font-face{font-family:'Pretendard';font-weight:800;src:url(fonts/Pretendard-ExtraBold.woff2) format('woff2')}
+@font-face{font-family:'Pretendard';font-weight:900;src:url(fonts/Pretendard-Black.woff2) format('woff2')}
+@font-face{font-family:'Black Han Sans';font-weight:400;src:url(fonts/black-han-sans.woff2) format('woff2')}
+@font-face{font-family:'Jua';font-weight:400;src:url(fonts/jua.woff2) format('woff2')}
+@font-face{font-family:'Do Hyeon';font-weight:400;src:url(fonts/do-hyeon.woff2) format('woff2')}
+:root{--paper:#ECEFEA;--sheet:#FAFBF8;--ink:#1D2420;--mute:#5E6862;--line:#D3D9D2;--teal:#1F6F5C;--teal-d:#17574A;--teal-l:#DCEBE5;--warn:#B4532A;--warn-l:#F7E6DD}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{font:500 16px/1.6 'Pretendard',system-ui,sans-serif;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line)}
+.brand{font:900 22px/1 'Pretendard';letter-spacing:-.03em}
+.brand small{display:block;font:600 12.5px/1.3 'Pretendard';color:var(--mute);letter-spacing:0;margin-top:4px}
+.newjob{border:0;border-radius:12px;padding:10px 14px;font-weight:800;background:var(--ink);color:#fff;white-space:nowrap}
+main{max-width:640px;margin:0 auto;padding:14px 14px 0;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:18px;padding:16px}
+.card h2{display:flex;align-items:center;gap:10px;font:800 18px/1.3 'Pretendard';letter-spacing:-.02em}
+.card h2 .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;font:900 15px/30px 'Pretendard';text-align:center}
+.card.done h2 .n{background:var(--teal)}
+.card h2 span.sub{font-weight:600;font-size:13px;color:var(--mute)}
+.help{color:var(--mute);font-size:14px;margin-top:6px}
+.big{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:2px dashed var(--line);border-radius:14px;padding:18px;margin-top:12px;background:#fff;font-weight:800;font-size:16px;color:var(--teal)}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.thumb{position:relative;aspect-ratio:9/16;border-radius:10px;overflow:hidden;background:#ddd}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .no{position:absolute;left:6px;top:6px;background:var(--ink);color:#fff;font:800 13px/24px 'Pretendard';min-width:24px;padding:0 6px;border-radius:12px;text-align:center}
+.thumb .tools{position:absolute;inset:auto 0 0 0;display:flex;background:rgba(29,36,32,.8)}
+.thumb .tools button{flex:1;background:none;border:0;color:#fff;padding:9px 0;font-size:15px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.small{font-size:13.5px;color:var(--mute)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:10px 14px;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.status{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.status b{font-weight:800}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:var(--teal);transition:width .3s}
+.warnbox{background:var(--warn-l);color:var(--warn);border-radius:12px;padding:12px 14px;font-size:14.5px;margin-top:12px;white-space:pre-wrap}
+textarea{width:100%;min-height:200px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;line-height:1.7;font-size:15.5px;margin-top:12px}
+.ghost{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:9px 14px;font-weight:700}
+.maplist{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.mrow.first{border-left:5px solid var(--teal)}
+.mrow .tx{font-size:14.5px;line-height:1.45}
+.mrow .tm{display:block;font-size:12px;color:var(--mute)}
+.mrow .pick{display:flex;align-items:center;gap:6px}
+.mrow .mini{width:30px;height:40px;border-radius:5px;object-fit:cover;background:#ddd}
+select{border:1.5px solid var(--line);border-radius:10px;padding:8px 8px;background:#fff;font-weight:700}
+.presets{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.preset{border:2px solid var(--line);border-radius:12px;background:#fff;padding:0;overflow:hidden;text-align:left}
+.preset[aria-pressed="true"]{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-l)}
+.preset canvas{display:block;width:100%;height:auto;background:linear-gradient(135deg,#7f9c90,#3c5a50)}
+.preset span{display:block;padding:6px 10px;font-weight:700;font-size:14px}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.opt:first-of-type{border-top:0}
+.opt label{font-weight:700}
+.opt label small{display:block;font-weight:500;font-size:13px;color:var(--mute)}
+.switch{flex:none;width:52px;height:30px;accent-color:var(--teal)}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--line)}
+.sw[aria-pressed="true"]{outline:3px solid var(--teal);outline-offset:2px}
+.makebar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--paper) 70%,rgba(236,239,234,0))}
+.make{display:block;width:100%;max-width:640px;margin:0 auto;border:0;border-radius:16px;background:var(--teal);color:#fff;font:900 20px/1 'Pretendard';padding:19px}
+.make:disabled{background:#9DB0A8}
+.need{text-align:center;font-size:13.5px;color:var(--warn);margin-top:6px}
+.result video{width:100%;border-radius:14px;background:#000;display:block;margin-top:12px;max-height:70vh}
+.result .row button{flex:1}
+.primary{border:0;border-radius:12px;padding:14px;font-weight:800;background:var(--teal);color:#fff}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">릴스메이커<small>휴대폰 안에서 바로 만드는 릴스 (1분 이내)</small></div>
+  <button class="newjob" id="newJob">＋ 새 작업</button>
+</header>
+
+<main>
+  <section class="card" id="c1">
+    <h2><span class="n">1</span>사진 넣기 <span class="sub">1~10장 · 이야기 순서대로</span></h2>
+    <p class="help">넣은 순서 그대로 영상에 나와요. ◀ ▶로 순서를 바꿀 수 있어요.</p>
+    <button class="big" id="pickImg">📷 갤러리에서 사진 고르기</button>
+    <input type="file" id="imgInput" accept="image/*" multiple hidden />
+    <div class="thumbs" id="thumbs"></div>
+  </section>
+
+  <section class="card" id="c2">
+    <h2><span class="n">2</span>음성(TTS) 넣기</h2>
+    <p class="help">넣으면 바로 분석해요: 무음 제거 → 1.2배속 → 말한 내용과 시간 찾기. 영상 길이는 음성에 맞춰지고, 1분을 넘으면 속도를 자동으로 올려요.</p>
+    <p class="help" id="modelNote" hidden>⚠ 처음 한 번은 음성 인식 파일(약 230MB)을 내려받아요. <b>와이파이</b>에서 해 주세요. 다음부터는 바로 시작돼요.</p>
+    <button class="big" id="pickVoice">🎙 음성 파일 고르기</button>
+    <input type="file" id="voiceInput" accept="audio/*,.mp3,.wav,.m4a" hidden />
+    <div class="status" id="voiceStatus" hidden></div>
+  </section>
+
+  <section class="card" id="c3">
+    <h2><span class="n">3</span>자막</h2>
+    <div class="row"><div class="seg" id="capToggle"><button data-cap="on">자막 넣기</button><button data-cap="off">자막 없이</button></div></div>
+    <div id="capWrap">
+      <textarea id="capEdit" spellcheck="false" placeholder="음성을 넣으면 받아 적은 자막이 여기에 나와요."></textarea>
+      <p class="small" style="margin-top:6px">틀린 글자만 고쳐 주세요. <b>한 줄 = 화면에 한 번 나오는 자막</b>이에요. 줄 수를 그대로 두면 타이밍이 유지돼요. 강조할 단어는 **별표 두 개**로 감싸요.</p>
+      <div class="row"><button class="ghost" id="capReset">처음 받아 적은 대로 되돌리기</button></div>
+    </div>
+  </section>
+
+  <section class="card" id="c4">
+    <h2><span class="n">4</span>장면 맞추기 <span class="sub">말과 화면 연결</span></h2>
+    <p class="help">문장마다 몇 번 사진이 나올지 정해요. 그 문장이 시작될 때 화면이 바뀌어요. 처음엔 자동으로 연결돼 있어요.</p>
+    <div class="small" id="mapEmpty" style="margin-top:10px">사진과 음성을 넣으면 문장 목록이 나와요.</div>
+    <div class="maplist" id="mapList"></div>
+    <div class="row" id="mapTools" hidden><button class="ghost" id="mapAuto">자동으로 다시 연결</button><span class="small" id="mapInfo"></span></div>
+  </section>
+
+  <section class="card" id="c5">
+    <h2><span class="n">5</span>글자 스타일·설정</h2>
+    <div class="presets" id="presets"></div>
+    <div class="row"><span class="small">자막 위치</span><div class="seg" id="pos"><button data-v="top">위</button><button data-v="middle">가운데</button><button data-v="bottom">아래</button></div></div>
+    <div class="row"><span class="small">여백 색</span><div class="seg" id="bgMode"><button data-bg="blur">흐린 배경</button><button data-bg="color">단색</button></div><span id="bgColors" class="row" style="margin-top:0"></span></div>
+    <div style="margin-top:8px">
+      <div class="opt"><label>음성 속도<small>바꾸면 장면이 다시 맞춰져요</small></label><select id="speed"><option value="1">1.0배</option><option value="1.1">1.1배</option><option value="1.2" selected>1.2배</option><option value="1.3">1.3배</option></select></div>
+      <div class="opt"><label>사진 사용 방법<small>여러 번 = 같은 사진을 확대·이동해 더 자주 바뀜</small></label><select id="mediaUse"><option value="once">한 번씩만</option><option value="repeat">여러 번</option></select></div>
+      <div class="opt"><label for="hookCard">첫 화면 글자 카드<small>첫 문장을 큰 글자로 보여줘요</small></label><input type="checkbox" class="switch" id="hookCard" checked /></div>
+      <div class="opt"><label for="useSfx">효과음 자동으로 넣기</label><input type="checkbox" class="switch" id="useSfx" checked /></div>
+      <div class="opt"><label for="progressBar">맨 위 진행 바</label><input type="checkbox" class="switch" id="progressBar" checked /></div>
+    </div>
+  </section>
+
+  <section class="card result" id="result" hidden>
+    <h2><span class="n">✓</span>완성!</h2>
+    <video id="outVideo" controls playsinline></video>
+    <p class="small" id="outInfo" style="margin-top:8px"></p>
+    <div class="row"><button class="primary" id="saveBtn">⬇ 휴대폰에 저장</button><button class="primary" id="shareBtn">↗ 공유하기</button></div>
+    <p class="small" style="margin-top:8px">저장한 영상은 휴대폰의 <b>다운로드</b> 폴더(또는 갤러리)에서 찾을 수 있어요.</p>
+  </section>
+  <div class="warnbox" id="err" hidden></div>
+</main>
+
+<div class="makebar">
+  <button class="make" id="make" disabled>릴스 만들기</button>
+  <div class="bar" id="makeBar" hidden><i id="makeFill"></i></div>
+  <p class="need" id="need"></p>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{
+ "version": "sensevoice-int8-2024-07-17-wasm1.12.33",
+ "total": 240193589,
+ "parts": [
+  {
+   "name": "sv-00.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-01.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-02.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-03.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-04.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-05.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-06.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-07.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-08.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-09.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-10.bin",
+   "size": 20016133
+  },
+  {
+   "name": "sv-11.bin",
+   "size": 20016126
+  }
+ ]
+}
