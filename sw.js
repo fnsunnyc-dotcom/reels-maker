@@ -1,5 +1,5 @@
 // 앱 화면 파일을 저장해 두어 다음부터 빨리 열리게 함 (항상 새 버전을 먼저 확인)
-const CACHE = "reels-app-v1";
+const CACHE = "reels-app-v2";
 self.addEventListener("install", (e) => self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (k.startsWith("reels-app-") && k !== CACHE) await caches.delete(k);

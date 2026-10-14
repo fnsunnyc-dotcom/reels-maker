@@ -1,13 +1,13 @@
 // 릴스메이커 모바일 — 모든 작업이 휴대폰 안에서 이뤄져요 (사진·음성이 밖으로 나가지 않음)
 import { decodeFile, processVoice, speechPieces } from "./lib/audio.js";
 import { tokensToWords, buildCaptions, applyEditedText, linesToText, sceneUnits } from "./lib/text.js";
-import { PRESETS, planScenes, prepareImages, renderReel } from "./lib/render.js";
+import { PRESETS, planScenes, renderReel } from "./lib/render.js";
 
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-const MAX_SEC = 60, SAFE_SEC = 58, MAX_SPEED = 1.6;
+const MAX_SEC = 60, SAFE_SEC = 58, MAX_SPEED = 1.6, MAX_IMG = 30;
 
-const DEFAULT = { captions: true, preset: "clean", position: "bottom", bgMode: "blur", bgColor: "#FFFFFF", speed: 1.2, mediaUse: "once", hookCard: true, useSfx: true, progressBar: true };
+const DEFAULT = { captions: true, preset: "clean", position: "bottom", bgMode: "blur", bgColor: "#FFFFFF", speed: 1.2, motion: "dynamic", hookCard: true, useSfx: true, progressBar: true };
 let opt = { ...DEFAULT };
 let S = blank();
 function blank() { return { images: [], voiceFile: null, raw: null, asr: null, proc: null, words: [], lines: [], captionText: "", userMap: null, busy: false, video: null }; }
@@ -36,14 +36,25 @@ async function modelCached() {
 
 // ── 1. 사진 ──────────────────────────────────
 $("#pickImg").onclick = () => $("#imgInput").click();
-$("#imgInput").onchange = (e) => {
-  const files = [...e.target.files].filter((f) => f.type.startsWith("image/"));
-  const room = 10 - S.images.length;
-  if (files.length > room) alert(`사진은 10장까지 넣을 수 있어요. 앞의 ${room}장만 넣을게요.`);
-  for (const f of files.slice(0, room)) S.images.push({ file: f, url: URL.createObjectURL(f) });
+$("#imgInput").onchange = async (e) => {
+  const files = [...e.target.files].filter((f) => f.type.startsWith("image/") || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name));
   e.target.value = "";
+  const room = MAX_IMG - S.images.length;
+  if (files.length > room) alert(`사진은 ${MAX_IMG}장까지 넣을 수 있어요. 앞의 ${room}장만 넣을게요.`);
+  for (const f of files.slice(0, room)) S.images.push({ file: f, url: await thumbUrl(f) });
   S.userMap = null; render();
 };
+// 미리보기용 작은 사진 (원본을 화면에 그대로 띄우면 사진이 많을 때 휴대폰 메모리가 부족해짐)
+async function thumbUrl(f) {
+  try {
+    const b = await createImageBitmap(f, { imageOrientation: "from-image" });
+    const k = Math.min(1, 300 / Math.max(b.width, b.height));
+    const c = document.createElement("canvas"); c.width = Math.round(b.width * k); c.height = Math.round(b.height * k);
+    c.getContext("2d").drawImage(b, 0, 0, c.width, c.height); b.close();
+    const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.8));
+    return URL.createObjectURL(blob);
+  } catch { return URL.createObjectURL(f); }
+}
 function renderThumbs() {
   $("#thumbs").innerHTML = S.images.map((im, i) => `<div class="thumb"><img src="${im.url}" alt=""><span class="no">${i + 1}</span>
     <div class="tools"><button data-mv="${i}" data-d="-1" aria-label="앞으로">◀</button><button data-rm="${i}" aria-label="빼기">✕</button><button data-mv="${i}" data-d="1" aria-label="뒤로">▶</button></div></div>`).join("");
@@ -163,7 +174,7 @@ function renderPresets() {
   $("#bgColors").innerHTML = opt.bgMode === "color" ? SW.map((c) => `<button class="sw" data-sw="${c}" style="background:${c}" aria-pressed="${opt.bgColor === c}" aria-label="${c}"></button>`).join("") : "";
 }
 for (const id of ["hookCard", "useSfx", "progressBar"]) $("#" + id).onchange = (e) => (opt[id] = e.target.checked);
-$("#mediaUse").onchange = (e) => (opt.mediaUse = e.target.value);
+$("#motion").onchange = (e) => (opt.motion = e.target.value);
 $("#speed").onchange = (e) => { opt.speed = parseFloat(e.target.value); if (S.raw) analyze(); };
 
 document.addEventListener("click", (e) => {
@@ -190,12 +201,20 @@ $("#make").onclick = async () => {
     let cap = edited && edited !== S.captionText.trim() ? applyEditedText(S.words, S.lines, edited, {}) : buildCaptions(S.words, { maxChars: 12 });
     if (!S.words.length) cap = { sentences: [], chunks: [] };
     const sm = scenes();
-    const plan = planScenes({ dur: S.proc.duration, units: sm.units, map: sm.map, images: S.images, sentences: cap.sentences, hookCard: opt.hookCard && cap.sentences.length > 0, mediaUse: opt.mediaUse });
-    prog(0.02, "사진 준비 중…");
-    const images = await prepareImages(S.images.map((x) => x.file), { mode: opt.bgMode, color: opt.bgColor });
+    const plan = planScenes({ dur: S.proc.duration, units: sm.units, map: sm.map, sentences: cap.sentences, hookCard: opt.hookCard && cap.sentences.length > 0, motion: opt.motion });
+    // 앞에서 만든 영상을 먼저 비워서 휴대폰 영상 기능·메모리를 돌려놓기 (다시 만들기 오류 방지)
+    releaseVideo();
+    await new Promise((r) => setTimeout(r, 300));
     const t0 = performance.now();
-    const r = await renderReel({ voice: S.proc.samples, dur: S.proc.duration, images, plan, chunks: cap.chunks, opts: opt, onProgress: prog });
-    if (S.video) URL.revokeObjectURL(S.video.url);
+    const job = { voice: S.proc.samples, dur: S.proc.duration, files: S.images.map((x) => x.file), plan, chunks: cap.chunks, opts: { ...opt }, onProgress: prog };
+    let r;
+    try { r = await renderReel(job); }
+    catch (e1) { // 한 번 더 자동으로 시도
+      console.warn("retry", e1);
+      prog(0.01, "다시 시도하는 중…");
+      await new Promise((res) => setTimeout(res, 1200));
+      r = await renderReel(job);
+    }
     const d = new Date(), p2 = (n) => String(n).padStart(2, "0");
     S.video = { blob: r.blob, url: URL.createObjectURL(r.blob), name: `릴스_${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}_${p2(d.getHours())}${p2(d.getMinutes())}.mp4` };
     $("#outVideo").src = S.video.url;
@@ -206,9 +225,15 @@ $("#make").onclick = async () => {
     $("#shareBtn").hidden = !(navigator.canShare && navigator.canShare({ files: [new File([r.blob], S.video.name, { type: "video/mp4" })] }));
     $("#result").scrollIntoView({ behavior: "smooth" });
   } catch (err) {
-    showErr("영상을 만들지 못했어요.\n" + err.message);
+    console.error(err);
+    showErr("영상을 만들지 못했어요.\n" + (err.message || err) + "\n\n· 다른 앱을 닫고 다시 눌러 보세요.\n· 계속 안 되면 [새 작업] 없이 페이지를 새로고침한 뒤 다시 넣어 주세요.");
   } finally { S.busy = false; $("#makeBar").hidden = true; render(); }
 };
+function releaseVideo() {
+  const v = $("#outVideo");
+  try { v.pause(); v.removeAttribute("src"); v.load(); } catch {}
+  if (S.video) { URL.revokeObjectURL(S.video.url); S.video = null; }
+}
 $("#saveBtn").onclick = () => { const a = document.createElement("a"); a.href = S.video.url; a.download = S.video.name; document.body.appendChild(a); a.click(); a.remove(); };
 $("#shareBtn").onclick = async () => { try { await navigator.share({ files: [new File([S.video.blob], S.video.name, { type: "video/mp4" })], title: "릴스" }); } catch {} };
 
@@ -217,10 +242,10 @@ $("#newJob").onclick = () => {
   if (S.busy) return alert("만드는 중에는 새 작업을 시작할 수 없어요.");
   if (!confirm("새 작업을 시작할까요?\n넣은 사진·음성·자막·설정이 모두 처음 상태로 돌아가요.")) return;
   S.images.forEach((x) => URL.revokeObjectURL(x.url));
-  if (S.video) URL.revokeObjectURL(S.video.url);
+  releaseVideo();
   S = blank(); opt = { ...DEFAULT };
   $("#capEdit").value = ""; $("#voiceStatus").hidden = true; $("#result").hidden = true; hideErr();
-  $("#speed").value = "1.2"; $("#mediaUse").value = "once";
+  $("#speed").value = "1.2"; $("#motion").value = "dynamic";
   for (const id of ["hookCard", "useSfx", "progressBar"]) $("#" + id).checked = true;
   render(); window.scrollTo({ top: 0, behavior: "smooth" });
 };
