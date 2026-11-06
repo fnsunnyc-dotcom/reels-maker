@@ -60,6 +60,23 @@ textarea{width:100%;min-height:200px;border:1px solid var(--line);border-radius:
 .mrow .tm{display:block;font-size:12px;color:var(--mute)}
 .mrow .pick{display:flex;align-items:center;gap:6px}
 .mrow .mini{width:30px;height:40px;border-radius:5px;object-fit:cover;background:#ddd}
+.grp{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.grp.off{opacity:.55}
+.ghead{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--teal-l)}
+.ghead img{width:36px;height:48px;border-radius:6px;object-fit:cover;background:#ddd;flex:none}
+.ghead .gt{flex:1;min-width:0;font-weight:800;font-size:15px;line-height:1.35}
+.ghead .gt small{display:block;font-weight:600;font-size:12.5px;color:var(--mute)}
+.ghead label{font-size:12.5px;font-weight:700;color:var(--mute);display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.ghead select{padding:6px;font-size:14px}
+.line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:7px 10px;border-top:1px solid var(--line)}
+.line .tm{grid-column:1/-1;font-size:11.5px;color:var(--mute);line-height:1}
+.line input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:15.5px;background:#fdfdfb}
+.line input:focus{border-color:var(--teal);background:#fff;outline:none}
+.line input.edited{border-color:#E0B341;background:#FFFBEA}
+.line select{padding:8px 4px;font-size:14px}
+.nolines{padding:8px 10px;font-size:13px;color:var(--mute);border-top:1px solid var(--line)}
+.tlsum{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
+.tlsum.over{background:var(--warn-l);color:var(--warn);border-color:var(--warn)}
 select{border:1.5px solid var(--line);border-radius:10px;padding:8px 8px;background:#fff;font-weight:700}
 .presets{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
 .preset{border:2px solid var(--line);border-radius:12px;background:#fff;padding:0;overflow:hidden;text-align:left}
@@ -108,30 +125,23 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:8px 8px;backgro
   </section>
 
   <section class="card" id="c3">
-    <h2><span class="n">3</span>자막</h2>
+    <h2><span class="n">3</span>장면·자막 편집 <span class="sub">글자와 사진을 바로 고쳐요</span></h2>
     <div class="row"><div class="seg" id="capToggle"><button data-cap="on">자막 넣기</button><button data-cap="off">자막 없이</button></div></div>
-    <div id="capWrap">
-      <textarea id="capEdit" spellcheck="false" placeholder="음성을 넣으면 받아 적은 자막이 여기에 나와요."></textarea>
-      <p class="small" style="margin-top:6px">틀린 글자만 고쳐 주세요. <b>한 줄 = 화면에 한 번 나오는 자막</b>이에요. 줄 수를 그대로 두면 타이밍이 유지돼요. 강조할 단어는 **별표 두 개**로 감싸요.</p>
-      <div class="row"><button class="ghost" id="capReset">처음 받아 적은 대로 되돌리기</button></div>
-    </div>
-  </section>
-
-  <section class="card" id="c4">
-    <h2><span class="n">4</span>장면 맞추기 <span class="sub">말과 화면 연결</span></h2>
-    <p class="help">문장마다 몇 번 사진이 나올지 정해요. 그 문장이 시작될 때 화면이 바뀌어요. 처음엔 자동으로 연결돼 있어요.</p>
-    <div class="small" id="mapEmpty" style="margin-top:10px">사진과 음성을 넣으면 문장 목록이 나와요.</div>
+    <p class="help">· 자막 칸을 눌러 <b>틀린 글자를 바로 고쳐요</b>. 강조할 단어는 **별표 두 개**로 감싸요. 칸을 비우면 그 줄은 자막이 안 나와요.<br>· 줄 옆 번호로 <b>그 줄에 나올 사진</b>을 골라요. 사진은 그 줄이 시작될 때 바뀌어요.<br>· 사진마다 <b>쉼 추가</b>를 고르면 말이 끝난 뒤 그 사진이 더 보여요.</p>
+    <div class="small" id="mapEmpty" style="margin-top:10px">사진과 음성을 넣으면 자막 줄 목록이 나와요.</div>
+    <div class="tlsum" id="tlSum" hidden></div>
     <div class="maplist" id="mapList"></div>
-    <div class="row" id="mapTools" hidden><button class="ghost" id="mapAuto">자동으로 다시 연결</button><span class="small" id="mapInfo"></span></div>
+    <div class="row" id="mapTools" hidden><button class="ghost" id="mapAuto">사진 자동으로 다시 연결</button><button class="ghost" id="capReset">자막 처음대로</button><span class="small" id="mapInfo"></span></div>
   </section>
 
   <section class="card" id="c5">
-    <h2><span class="n">5</span>글자 스타일·설정</h2>
+    <h2><span class="n">4</span>글자 스타일·설정</h2>
     <div class="presets" id="presets"></div>
     <div class="row"><span class="small">자막 위치</span><div class="seg" id="pos"><button data-v="top">위</button><button data-v="middle">가운데</button><button data-v="bottom">아래</button></div></div>
     <div class="row"><span class="small">여백 색</span><div class="seg" id="bgMode"><button data-bg="blur">흐린 배경</button><button data-bg="color">단색</button></div><span id="bgColors" class="row" style="margin-top:0"></span></div>
     <div style="margin-top:8px">
       <div class="opt"><label>음성 속도<small>바꾸면 장면이 다시 맞춰져요</small></label><select id="speed"><option value="1">1.0배</option><option value="1.1">1.1배</option><option value="1.2" selected>1.2배</option><option value="1.3">1.3배</option></select></div>
+      <div class="opt"><label>문장 사이 쉼<small>무음을 지울 때 문장 사이에 남길 시간</small></label><select id="gap"><option value="0.12" selected>짧게</option><option value="0.3">보통</option><option value="0.5">길게</option></select></div>
       <div class="opt"><label>화면 움직임<small>보통 = 부드럽게 이어짐 · 역동적 = 컷이 빠르게 바뀜</small></label><select id="motion"><option value="calm">차분하게</option><option value="normal" selected>보통</option><option value="dynamic">역동적으로</option></select></div>
       <div class="opt"><label for="hookCard">첫 화면 글자 카드<small>첫 문장을 큰 글자로 보여줘요</small></label><input type="checkbox" class="switch" id="hookCard" checked /></div>
       <div class="opt"><label for="useSfx">효과음 자동으로 넣기</label><input type="checkbox" class="switch" id="useSfx" checked /></div>
